@@ -8,8 +8,7 @@
 
 class UExplorationMenuEp;
 
-namespace epona
-{
+
 	/**
 	 *
 	 */
@@ -26,4 +25,3 @@ namespace epona
 		UExplorationMenuEp* m_menu;
 
 	};
-}
