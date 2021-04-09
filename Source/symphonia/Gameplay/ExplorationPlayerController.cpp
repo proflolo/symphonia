@@ -8,9 +8,6 @@
 #include "GameFramework/GameUserSettings.h"
 #include "Gui/ExplorationMenuEp.h"
 
-namespace epona
-{
-
 	void AExplorationPlayerController::BeginPlay()
 	{
 		APlayerController::BeginPlay();
@@ -33,5 +30,4 @@ namespace epona
 
 	}
 
-}
 
