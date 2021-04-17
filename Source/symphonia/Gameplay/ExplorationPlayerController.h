@@ -24,4 +24,7 @@ class UExplorationMenuEp;
 	private:
 		UExplorationMenuEp* m_menu;
 
+		UFUNCTION()
+		void PauseChangeRequested();
+
 	};

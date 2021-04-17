@@ -7,6 +7,8 @@
 #include "Actors/LevelConfig.h"
 #include "GameFramework/GameUserSettings.h"
 #include "Gui/ExplorationMenuEp.h"
+#include "Engine/Classes/Components/SceneCaptureComponent2D.h"
+#include "Engine/Classes/Kismet/KismetRenderingLibrary.h"
 
 
 
@@ -14,6 +16,7 @@
 	{
 		APlayerController::BeginPlay();
 
+		bShowMouseCursor = true;
 
 		UGameUserSettings* userSettings = GEngine->GetGameUserSettings();
 		userSettings->SetFullscreenMode(EWindowMode::Windowed);
@@ -25,11 +28,44 @@
 
 		ACameraActor* selectedCamera = levelConfig->mainCamera;
 
+		USceneCaptureComponent2D* captureComponent = dynamic_cast<USceneCaptureComponent2D*>(selectedCamera->GetComponentByClass(USceneCaptureComponent2D::StaticClass()));
+		if (!captureComponent)
+		{
+			UE_LOG(LogTemp, Error, TEXT("CaptureComponent no encontrada en la camara"));
+		}
+		FVector2D viewPortSize;
+		GEngine->GameViewport->GetViewportSize(viewPortSize);
+		if (viewPortSize.Y < 10 || viewPortSize.Y < 10)
+		{
+			//UE_LOG(LogTemp, Warning!, TEXT("Viewport no encontrado!"));
+			viewPortSize = userSettings->GetScreenResolution();
+			UE_LOG(LogTemp, Warning, TEXT("Viewport no encontrado"));
+		}
+
+
+		UTextureRenderTarget2D* renderTarget = UKismetRenderingLibrary::CreateRenderTarget2D(GetWorld(), viewPortSize.X, viewPortSize.Y);
+
+		captureComponent->TextureTarget = renderTarget;
+
 		SetViewTarget(selectedCamera);
 
 		m_menu = CreateWidget<UExplorationMenuEp>(GetWorld(), levelConfig->ingameMenuClass);
 		m_menu->AddToViewport();
+		m_menu->Prepare(renderTarget);
+		m_menu->sig_onPauseChangeRequested.AddDynamic(this, &AExplorationPlayerController::PauseChangeRequested);		
 
 	}
 
-
+	void AExplorationPlayerController::PauseChangeRequested()
+	{
+		if (IsPaused())
+		{
+			SetPause(false);
+			m_menu->SetPaused(false);
+		}
+		else
+		{
+			SetPause(true);
+			m_menu->SetPaused(true);
+		}
+	}
