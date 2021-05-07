@@ -9,7 +9,8 @@
 #include "Gui/ExplorationMenuEp.h"
 #include "Engine/Classes/Components/SceneCaptureComponent2D.h"
 #include "Engine/Classes/Kismet/KismetRenderingLibrary.h"
-
+#include "Private/AssertUtils.h"
+#include "Gameplay/Actors/MainCharacterEP.h"
 
 
 	void AExplorationPlayerController::BeginPlay()
@@ -27,6 +28,12 @@
 		const ALevelConfig* levelConfig = dynamic_cast<const ALevelConfig*>(UGameplayStatics::GetActorOfClass(GetWorld(), ALevelConfig::StaticClass()));
 
 		ACameraActor* selectedCamera = levelConfig->mainCamera;
+
+		LASSERT(selectedCamera, "No se ha configurado la camara del nivel");
+		if (!selectedCamera)
+		{
+			return;
+		}
 
 		USceneCaptureComponent2D* captureComponent = dynamic_cast<USceneCaptureComponent2D*>(selectedCamera->GetComponentByClass(USceneCaptureComponent2D::StaticClass()));
 		if (!captureComponent)
@@ -53,6 +60,11 @@
 		m_menu->AddToViewport();
 		m_menu->Prepare(renderTarget);
 		m_menu->sig_onPauseChangeRequested.AddDynamic(this, &AExplorationPlayerController::PauseChangeRequested);		
+
+		if (levelConfig->mainCharacter)
+		{
+			Possess(levelConfig->mainCharacter);
+		}
 
 	}
 

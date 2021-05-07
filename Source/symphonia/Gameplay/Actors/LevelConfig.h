@@ -8,6 +8,7 @@
 
 class ACameraActor;
 class UExplorationMenuEp;
+class AMainCharacterEP;
 
 UCLASS()
 class SYMPHONIA_API ALevelConfig : public AActor
@@ -23,6 +24,9 @@ public:
 
 	UPROPERTY(EditAnywhere, DisplayName = "Ingame Menu")
 	TSubclassOf<UExplorationMenuEp> ingameMenuClass;
+
+	UPROPERTY(EditAnywhere, DisplayName = "Main character");
+	AMainCharacterEP* mainCharacter;
 
 protected:
 	// Called when the game starts or when spawned
