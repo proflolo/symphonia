@@ -38,11 +38,44 @@ void AMainCharacterEP::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (m_physics)
 	{
-		m_physics->SetPhysicsLinearVelocity(m_velocity);
-		if (m_velocity.SizeSquared() > 0.0f)
+		//m_physics->SetPhysicsLinearVelocity(m_velocity);
+
+		float velocitySize = m_velocity.Size();
+		if (velocitySize > 0.f)
 		{
-			m_lookAt = m_velocity.GetUnsafeNormal();
+			//tirar un ray
+			FVector radius = m_physics->Bounds.BoxExtent;
+			float r = FGenericPlatformMath::Max(radius.X, radius.Y);
+			FVector direction = m_velocity.GetSafeNormal();
+			FVector start = GetActorLocation() + FVector(0.f, 0.f, -30.f) + r*1.25f * direction;
+			FVector end = start + direction*velocitySize*DeltaTime;
+
+			FCollisionObjectQueryParams query(FCollisionObjectQueryParams::InitType::AllObjects);
+			FHitResult hit;
+			if (GetWorld()->LineTraceSingleByObjectType(hit, start, end, query))
+			{
+				FVector finalVelocity = FVector::VectorPlaneProject(m_velocity, hit.Normal);
+				m_physics->SetPhysicsLinearVelocity(finalVelocity);
+			}
+			else
+			{
+				m_physics->SetPhysicsLinearVelocity(m_velocity);
+			}
+
+			//si el rayo toca, no avanzar
+
+			//si no toca, avanzar
+
+		
+				m_lookAt = m_velocity.GetUnsafeNormal();
+		
 		}
+		else
+		{
+			m_physics->SetPhysicsLinearVelocity(FVector::ZeroVector);
+		}
+		
+		
 		
 		FRotator rotator = UKismetMathLibrary::FindLookAtRotation(FVector::ZeroVector, m_lookAt);
 		m_physics->SetAllPhysicsRotation(rotator);
