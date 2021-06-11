@@ -5,7 +5,7 @@
 #include "Engine/Classes/Components/InputComponent.h"
 #include "Private/AssertUtils.h"
 #include "Engine/Classes/Kismet/KismetMathLibrary.h"
-
+#include "Gameplay/Components/Interactible.h"
 // Sets default values
 AMainCharacterEP::AMainCharacterEP()
 {
@@ -30,6 +30,8 @@ void AMainCharacterEP::BeginPlay()
 	m_lookAt.X = 1.0f;
 	m_lookAt.Y = 0.f;
 	m_lookAt.Z = 0.f;
+
+	m_onActionRequested = false;
 }
 
 // Called every frame
@@ -74,6 +76,27 @@ void AMainCharacterEP::Tick(float DeltaTime)
 		{
 			m_physics->SetPhysicsLinearVelocity(FVector::ZeroVector);
 		}
+
+		if (m_onActionRequested)
+		{
+			FVector direction = m_lookAt.GetSafeNormal();
+			FVector start = GetActorLocation() - FVector(0.f, 0.f, 25.f);
+			FVector end = start + direction * 125.0f;
+
+			FCollisionObjectQueryParams query(FCollisionObjectQueryParams::InitType::AllObjects);
+			FHitResult hit;
+			if (GetWorld()->LineTraceSingleByObjectType(hit, start, end, query))
+			{
+				UInteractible* impacted = hit.Actor->FindComponentByClass<UInteractible>();
+				if (impacted)
+				{
+					impacted->NotifyInteracted();
+				}
+			}
+			
+
+			m_onActionRequested = false;
+		}
 		
 		
 		
@@ -90,6 +113,7 @@ void AMainCharacterEP::SetupPlayerInputComponent(UInputComponent* i_playerInputC
 	Super::SetupPlayerInputComponent(i_playerInputComponent);
 	i_playerInputComponent->BindAxis("MoveX", this, &AMainCharacterEP::MoveX);
 	i_playerInputComponent->BindAxis("MoveY", this, &AMainCharacterEP::MoveY);
+	i_playerInputComponent->BindAction("Action", EInputEvent::IE_Pressed, this, &AMainCharacterEP::OnAction);
 
 
 }
@@ -104,5 +128,10 @@ void AMainCharacterEP::MoveY(float i_value)
 {
 	m_rawAxis.Y = i_value;
 	m_velocity.Y = i_value * 500.f;
+}
+
+void AMainCharacterEP::OnAction()
+{
+	m_onActionRequested = true;
 }
 

@@ -31,9 +31,11 @@ public:
 private:
 	void MoveX(float i_value);
 	void MoveY(float i_value);
+	void OnAction();
 
 	UPrimitiveComponent* m_physics;
 	FVector2D m_rawAxis;
 	FVector m_velocity;
 	FVector m_lookAt;
+	bool m_onActionRequested = false;
 };
